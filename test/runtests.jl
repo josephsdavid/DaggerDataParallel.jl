@@ -33,11 +33,28 @@ const PID = 1
 
     map(fetch, promises)
 
+
+    @everywhere begin
+        function cycler(pid)
+            ran = false
+            output = []
+            function cycle(pid)
+                ran == false && return pid - 1 # TODO: Actually grab the number
+                ret
+            end
+        end
+    end
+
     tasks = map(1:6) do _
         Dagger.@spawn (() -> PID)()
     end
-
     @show fetch.(tasks)
+
+    tasks = map(1:6) do _
+        Dagger.@spawn()
+
+    end
+
 end
 
 rmprocs(pids)
