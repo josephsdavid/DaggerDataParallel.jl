@@ -4,6 +4,8 @@ using Dagger
 using Distributed
 using Flux
 
+const PROJECT = joinpath(@__DIR__, "..", "project.toml")
+
 # TODO:
 # 1. Get an example model
 # 2. Sample data

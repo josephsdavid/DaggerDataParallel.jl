@@ -1,10 +1,13 @@
 using DaggerDataParallel
+using Dagger
 using Distributed
 using Flux
+using Random
 using Test
 using Pkg
 
-project = Pkg.project().path
+project = DaggerDataParallel.PROJECT
+@show project
 pids = addprocs(4)
 
 # https://engineering.fb.com/2021/07/15/open-source/fsdp/
@@ -12,20 +15,29 @@ pids = addprocs(4)
 
 # gather
 
+const PID = 1
 
 @testset "ddp" begin
-
-    map(pids) do pid
+    promises = map(pids) do pid
         return @async begin
-            Distributed.remotecall_eval.(Main, pids,
-                                         :(using Pkg; Pkg.activate($(project)); Pkg.instantiate()))
-            Distributed.remotecall_eval.(Main, pids,
-                                         :(using DaggerDataParallel, Distributed, Flux))
+            Distributed.remotecall_eval(Main, pid,
+                                        :(using Pkg;
+                                          Pkg.activate($(project));
+                                          Pkg.instantiate()))
+            Distributed.remotecall_eval(Main, pid,
+                                        :(using DaggerDataParallel, Distributed, Flux,
+                                                Dagger))
+            Distributed.remotecall_eval(Main, pid, :(const PID = $(pid)))
         end
     end
 
-    @every
+    map(fetch, promises)
 
+    tasks = map(1:6) do _
+        Dagger.@spawn (() -> PID)()
+    end
+
+    @show fetch.(tasks)
 end
 
 rmprocs(pids)
